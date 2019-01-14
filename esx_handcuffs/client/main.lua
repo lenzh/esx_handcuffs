@@ -26,7 +26,8 @@ local prevFemaleVariation = 0
 local femaleHash = GetHashKey("mp_f_freemode_01")
 local maleHash = GetHashKey("mp_m_freemode_01")
 local IsLockpicking    = false
-local IsDragged = false
+local DragStatus = {}
+DragStatus.IsDragged = false
 
 
 RegisterNetEvent('esx_handcuffs:cuff')
@@ -305,25 +306,45 @@ function OpenStealMenu(target, target_id)
 end
 
 RegisterNetEvent('esx_handcuffs:drag')
-AddEventHandler('esx_handcuffs:drag', function(cop)
+AddEventHandler('esx_handcuffs:drag', function()
   TriggerServerEvent('esx:clientLog', 'starting dragging')
   IsDragged = not IsDragged
 
 end)
 
 Citizen.CreateThread(function()
-  while true do
-    Wait(0)
-    if IsHandcuffed then
-      if IsDragged then
-        local ped = GetPlayerPed(GetPlayerFromServerId(CopPed))
-        local myped = GetPlayerPed(-1)
-        AttachEntityToEntity(myped, ped, 11816, 0.54, 0.54, 0.0, 0.0, 0.0, 0.0, false, false, false, false, 2, true)
-      else
-        DetachEntity(GetPlayerPed(-1), true, false)
-      end
-    end
-  end
+	local playerPed
+	local targetPed
+
+	while true do
+		Citizen.Wait(1)
+
+		if IsCuffed then
+			playerPed = PlayerPedId()
+
+			if DragStatus.IsDragged then
+				targetPed = GetPlayerPed(GetPlayerFromServerId())
+
+				-- undrag if target is in an vehicle
+				if not IsPedSittingInAnyVehicle(targetPed) then
+					AttachEntityToEntity(playerPed, targetPed, 11816, 0.54, 0.54, 0.0, 0.0, 0.0, 0.0, false, false, false, false, 2, true)
+				else
+					DragStatus.IsDragged = false
+					DetachEntity(playerPed, true, false)
+				end
+
+				if IsPedDeadOrDying(targetPed, true) then
+					DragStatus.IsDragged = false
+					DetachEntity(playerPed, true, false)
+				end
+
+			else
+				DetachEntity(playerPed, true, false)
+			end
+		else
+			Citizen.Wait(500)
+		end
+	end
 end)
 
 RegisterNetEvent('esx_handcuffs:putInVehicle')
