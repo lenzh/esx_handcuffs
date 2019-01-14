@@ -1,4 +1,7 @@
 # esx_handcuffs
-# Example of implementation (esx_policejob)
+# Original resource
+https://github.com/scorpio686/esx_handcuffs
+
+
 # THIS RESOURCE WAS MODIFIED BY Lenzh
 
